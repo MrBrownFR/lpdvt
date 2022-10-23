@@ -141,7 +141,7 @@ int main()
 
         char *filename;
         printf("Quel est le nom du fichier que vous cherchez à ouvrir ? (Merci d'entrer le chemin complet du fichier)\n> ");
-        fscanf("%s", &filename);
+        scanf("%s", &filename);
 
         int *dimensions = get_dimensions(filename);
         char *_lignes = (char *)malloc(sizeof(char) * dimensions[1]); // Variables temporaire mais nécéssaire pour allouer la matrice non carrée
