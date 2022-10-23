@@ -7,9 +7,10 @@ Ce projet rentre dans le cadre du devoir "[Projet de Fin de Période 1](https://
 
 ## Présentation
 
-Le Jeu de la Vie (Game Of Life) est un automate cellulaire dans lequel les cellules illustrent le chaos déterministe (l'exemple le plus connu de chaos déterministe est le double pendule). En d'autres termes, le comportement des cellules est imprévisible dans le détail car il dépend trop des conditions initiales. 
+Le Jeu de la Vie (Game Of Life) est un automate cellulaire dans lequel les cellules illustrent le chaos déterministe (l'exemple le plus connu de chaos déterministe est le double pendule). En d'autres termes, le comportement des cellules est imprévisible dans le détail car il dépend trop des conditions initiales.
 
-Le Jeu de la Vie a été inventé par John Conway (1937 - 2020) en 1970. Le jeu se déroule dans une grille à deux dimensions, où l'utilisateur peut définir une grille initiale. A chaque époque, le jeu met à jour la grille en respectant les règles énoncées ci-dessous : 
+Le Jeu de la Vie a été inventé par John Conway (1937 - 2020) en 1970. Le jeu se déroule dans une grille à deux dimensions, où l'utilisateur peut définir une grille initiale. A chaque époque, le jeu met à jour la grille en respectant les règles énoncées ci-dessous :
+
 - Une cellule devient vivante si elle possède strictement trois voisines vivantes,
 - Une cellule reste dans son état précédent si elle possède strictement deux voisins vivantes,
 - Sinon, la cellule devient morte.
@@ -19,6 +20,7 @@ Le Jeu de la Vie a été inventé par John Conway (1937 - 2020) en 1970. Le jeu 
 ## Utilisation
 
 L'utilisateur peut choisir trois options à son arrivée :
+
 - `h` : ouvre le menu d'aide,
 - `f` : ouvre une grille créée au préalable dans un fichier texte,
 - `r` : génère une grille aléatoire.

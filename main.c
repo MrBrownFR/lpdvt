@@ -4,6 +4,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#define INVALID_CHAR_READING 101
+#define CANT_OPEN_FILE 201
+#define FAIL_UPDATE 102
+
 /// @brief Affiche le message d'aide
 void help()
 {
@@ -12,48 +16,84 @@ void help()
 
 /// @brief Obtient les dimensions de la grille du jeu de la vie
 /// @param filename le nom du fichier
+/// @param dimensions un tableau de dimensions non instancié
 /// @return un tableau d'entier contenant dans l'ordre lignes, colonnes
-int *get_dimensions(char *filename)
+void get_dimensions(char filename[], int *dimensions)
 {
     errno = 0;
     FILE *content = fopen(filename, "r");
     if (content == NULL)
     {
-        printf("Une erreur s'est produite `a l'ouverture du fichier %s : %s\n",
-               filename, strerror(errno));
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
+        exit(CANT_OPEN_FILE);
     }
+    int lines = 1;
     int columns = 0;
-    while (fscanf(content, '\n') != EOF)
+    char buffer;
+    for (buffer = getc(content); buffer != EOF; buffer = getc(content))
     {
-        columns++;
-    }
-    int lines = 0;
-    while (fscanf(content, '\0') != EOF)
-    {
-        if (fscanf(content, '\n'))
+        if (buffer == '\n')
         {
-            lines++;
+            lines = lines + 1;
         }
+        columns += 1;
     }
+
+    columns /= lines;
+    // columns /= 2; // on a compté les espaces
+
     fclose(content);
-    int *grid[2] = {lines, columns};
-    return *grid;
+    dimensions[0] = lines;
+    dimensions[1] = columns;
 }
 
-void read_file(char *filename)
+void init_grid(char filename[], char **grid)
 {
     errno = 0;
     FILE *content = fopen(filename, "r");
     if (content == NULL)
 
     {
-        printf("Une erreur s'est produite `a l'ouverture du fichier %s : %s\n",
-               filename, strerror(errno));
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
+        exit(CANT_OPEN_FILE);
     }
-    /* traitements sur le fichier */
-    fclose(content);
+
+    int lines = 0;
+    int columns = 0;
+    char buffer;
+    for (buffer = getc(content); buffer != EOF; buffer = getc(content))
+    {
+        if (buffer == '\n')
+        {
+            lines = lines + 1;
+            columns = 0;
+            break;
+        }
+        columns += 1;
+        switch (buffer)
+        {
+        case 'o':
+            grid[lines][columns] = ' ';
+
+        case 'x':
+            grid[lines][columns] = '█';
+
+        default:
+            printf("Une erreur s'est produite lors de la lecture du caractère");
+            exit(INVALID_CHAR_READING);
+        }
+    }
+}
+
+void print_grid(char **grid, int *dimensions)
+{
+    for (int i = 0; i < dimensions[0]; i++)
+    {
+        for (int j = 0; j < dimensions[1]; j++)
+        {
+            printf("%c", grid[i][j]);
+        }
+    }
 }
 
 int valid_cell(int x, int y, int rows, int columns)
@@ -68,7 +108,7 @@ int valid_cell(int x, int y, int rows, int columns)
     }
 }
 
-void findAdjacent(int grid[5][5], int *storage, int i, int j, int rows, int columns)
+void find_adjacent(int grid[5][5], int *storage, int i, int j, int rows, int columns)
 {
     int live = 0;
     int dead = 0;
@@ -98,14 +138,14 @@ void findAdjacent(int grid[5][5], int *storage, int i, int j, int rows, int colu
     storage[1] = dead;
 }
 
-int update(int grid[5][5], int tmp_grid[5][5], int rows, int columns)
+void update(int grid[5][5], int tmp_grid[5][5], int rows, int columns)
 {
     for (int k = 0; k < rows; k++)
     {
         for (int l = 0; l < columns; l++)
         {
             int storage[2] = {0, 0};
-            findAdjacent(grid, storage, k, l, rows, columns);
+            find_adjacent(grid, storage, k, l, rows, columns);
             if (storage[0] == 3)
             {
                 tmp_grid[k][l] = 1;
@@ -122,7 +162,22 @@ int update(int grid[5][5], int tmp_grid[5][5], int rows, int columns)
     }
 
     // Il faut copier tmp_grid dans grid dcp avec deux for imbriqués je pense
-    return 201;
+    exit(FAIL_UPDATE);
+}
+
+void gol()
+{
+    char filename[256];
+    printf("Quel est le nom du fichier que vous cherchez à ouvrir ? (Merci d'entrer le chemin complet du fichier)\n> ");
+    scanf("%s", &filename);
+    // printf("%s", filename);
+    int dimensions[2];
+
+    get_dimensions(filename, dimensions);
+    char grid[dimensions[1]][dimensions[0]];
+    printf("%d", sizeof(grid));
+
+    init_grid(filename, (char **)grid);
 }
 
 int main()
@@ -138,15 +193,7 @@ int main()
         break;
 
     case 'f':
-
-        char *filename;
-        printf("Quel est le nom du fichier que vous cherchez à ouvrir ? (Merci d'entrer le chemin complet du fichier)\n> ");
-        scanf("%s", &filename);
-
-        int *dimensions = get_dimensions(filename);
-        char *_lignes = (char *)malloc(sizeof(char) * dimensions[1]); // Variables temporaire mais nécéssaire pour allouer la matrice non carrée
-        char **grid = (char **)malloc(sizeof(_lignes) * dimensions[0]);
-
+        gol();
         break;
 
     case 'r':
@@ -155,7 +202,7 @@ int main()
 
     default:
         printf("\nVous n'avez pas rentré d'option valable :( Merci de relancer le programme pour recommencer ;)\n\n");
-        return 101;
+        exit(INVALID_CHAR_READING);
     }
 
     return 0;
