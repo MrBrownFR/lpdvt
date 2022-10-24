@@ -27,8 +27,8 @@ void get_dimensions(char filename[], int *dimensions)
         fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
         exit(CANT_OPEN_FILE);
     }
-    int lines = 1;
-    int columns = 0;
+    int lines = 0;
+    int columns = 1;
     char buffer;
     for (buffer = getc(content); buffer != EOF; buffer = getc(content))
     {
@@ -47,52 +47,33 @@ void get_dimensions(char filename[], int *dimensions)
     dimensions[1] = columns;
 }
 
-void init_grid(char filename[], char **grid)
+/// @brief Initialise al grille à partir d'un fichier
+/// @param content le pointeur vers le contenu du fichier
+/// @param coords le pointeur vers la grille
+/// @param taille la taille allouée à la matrice
+void init_grid(FILE *content, char *coords, int taille)
 {
     errno = 0;
-    FILE *content = fopen(filename, "r");
-    if (content == NULL)
+    int index = 0;
+    int ch;
 
+    while ((ch = fgetc(content)) != EOF && index < taille)
     {
-        fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
-        exit(CANT_OPEN_FILE);
-    }
-
-    int lines = 0;
-    int columns = 0;
-    char buffer;
-    for (buffer = getc(content); buffer != EOF; buffer = getc(content))
-    {
-        if (buffer == '\n')
-        {
-            lines = lines + 1;
-            columns = 0;
-            break;
-        }
-        columns += 1;
-        switch (buffer)
-        {
-        case 'o':
-            grid[lines][columns] = ' ';
-
-        case 'x':
-            grid[lines][columns] = '█';
-
-        default:
-            printf("Une erreur s'est produite lors de la lecture du caractère");
-            exit(INVALID_CHAR_READING);
-        }
+        *coords = (char)ch;
+        coords++;
+        index++;
     }
 }
 
-void print_grid(char **grid, int *dimensions)
+/// @brief Affiche la grille à l'écran
+/// @param grid le pointeur vers les cases de la grille
+/// @param taille la taille allouée à la grille
+void print_grid(char *grid, int taille)
 {
-    for (int i = 0; i < dimensions[0]; i++)
+    for (int i = 0; i < taille; i++)
     {
-        for (int j = 0; j < dimensions[1]; j++)
-        {
-            printf("%c", grid[i][j]);
-        }
+        printf("%c", *grid);
+        grid++;
     }
 }
 
@@ -165,19 +146,39 @@ void update(int grid[5][5], int tmp_grid[5][5], int rows, int columns)
     exit(FAIL_UPDATE);
 }
 
+/// @brief Boucle principale du jeu
 void gol()
 {
+    /* INITIALISATION DU NOM DU FICHIER */
     char filename[256];
     printf("Quel est le nom du fichier que vous cherchez à ouvrir ? (Merci d'entrer le chemin complet du fichier)\n> ");
-    scanf("%s", &filename);
+    scanf("%s", filename);
     // printf("%s", filename);
+
+    /* INITIALISATION DES DIMENSIONS */
     int dimensions[2];
-
     get_dimensions(filename, dimensions);
-    char grid[dimensions[1]][dimensions[0]];
-    printf("%d", sizeof(grid));
+    // printf("%d %d\n", dimensions[0], dimensions[1]);
 
-    init_grid(filename, (char **)grid);
+    /* INITIALISATION DE LA GRILLE DE JEU */
+    char grid[dimensions[1]][dimensions[0]];
+    char *coords = &grid[0][0];
+    int taille = sizeof(grid);
+    // printf("%d", sizeof(grid));
+
+    /* OUVERTURE DU FICHIER */
+    FILE *content = fopen(filename, "r");
+    if (content == NULL)
+
+    {
+        fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
+        exit(CANT_OPEN_FILE);
+    }
+
+    /* TRAVAIL SUR LA GRILLE */
+    init_grid(content, coords, taille);
+    fclose(content);
+    print_grid(coords, taille);
 }
 
 int main()
@@ -193,7 +194,7 @@ int main()
         break;
 
     case 'f':
-        gol();
+        gol(); // Nécéssaire sinon bypass du contrôle d'initialisation??
         break;
 
     case 'r':
