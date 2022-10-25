@@ -7,7 +7,8 @@
 #define INVALID_CHAR_READING 101
 #define CANT_OPEN_FILE 201
 #define FAIL_UPDATE 102
-#define iteration 0
+unsigned int iteration = 0;
+unsigned int is_alive = 1;
 
 /// @brief Affiche le message d'aide
 void help()
@@ -71,7 +72,7 @@ void init_grid(FILE *content, char *coords, int taille)
 /// @param taille la taille allouée à la grille
 void print_grid(char *grid, int taille)
 {
-    printf("Itération n° %d", iteration);
+    printf("Itération n° %d\n", iteration);
     for (int i = 0; i < taille; i++)
     {
         printf("%c", *grid);
@@ -121,14 +122,14 @@ void find_adjacent(int grid[5][5], int *storage, int i, int j, int *dimensions)
     storage[1] = dead;
 }
 
-void update(int grid[5][5], int tmp_grid[5][5], int *dimentions)
+void update(int grid[5][5], int tmp_grid[5][5], int *dimensions)
 {
-    for (int k = 0; k < dimentions[0]; k++)
+    for (int k = 0; k < dimensions[0]; k++)
     {
-        for (int l = 0; l < dimentions[1]; l++)
+        for (int l = 0; l < dimensions[1]; l++)
         {
             int storage[2] = {0, 0};
-            find_adjacent(grid, storage, k, l, dimentions);
+            find_adjacent(grid, storage, k, l, dimensions);
             if (storage[0] == 3)
             {
                 tmp_grid[k][l] = 1;
@@ -181,6 +182,14 @@ void gol()
     init_grid(content, coords, taille);
     fclose(content);
     print_grid(coords, taille);
+
+    while (is_alive)
+    {
+        char *tmp_coords = coords;
+        update(*coords, *tmp_coords, dimensions);
+        print_grid(*coords, taille);
+        iteration++;
+    };
 }
 
 int main()
