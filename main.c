@@ -7,6 +7,7 @@
 #define INVALID_CHAR_READING 101
 #define CANT_OPEN_FILE 201
 #define FAIL_UPDATE 102
+#define iteration 0
 
 /// @brief Affiche le message d'aide
 void help()
@@ -70,6 +71,7 @@ void init_grid(FILE *content, char *coords, int taille)
 /// @param taille la taille allouée à la grille
 void print_grid(char *grid, int taille)
 {
+    printf("Itération n° %d", iteration);
     for (int i = 0; i < taille; i++)
     {
         printf("%c", *grid);
@@ -77,9 +79,9 @@ void print_grid(char *grid, int taille)
     }
 }
 
-int valid_cell(int x, int y, int rows, int columns)
+int valid_cell(int x, int y, int *dimensions)
 {
-    if (x >= 0 && x < rows && y >= 0 && y < columns)
+    if (x >= 0 && x < dimensions[0] && y >= 0 && y < dimensions[1])
     {
         return 1;
     }
@@ -89,7 +91,7 @@ int valid_cell(int x, int y, int rows, int columns)
     }
 }
 
-void find_adjacent(int grid[5][5], int *storage, int i, int j, int rows, int columns)
+void find_adjacent(int grid[5][5], int *storage, int i, int j, int *dimensions)
 {
     int live = 0;
     int dead = 0;
@@ -99,7 +101,7 @@ void find_adjacent(int grid[5][5], int *storage, int i, int j, int rows, int col
     {
         int x = i + offset[k][0];
         int y = j + offset[k][1];
-        if (valid_cell(x, y, rows, columns))
+        if (valid_cell(x, y, dimensions))
         {
             if (grid[x][y] == 1)
             {
@@ -119,14 +121,14 @@ void find_adjacent(int grid[5][5], int *storage, int i, int j, int rows, int col
     storage[1] = dead;
 }
 
-void update(int grid[5][5], int tmp_grid[5][5], int rows, int columns)
+void update(int grid[5][5], int tmp_grid[5][5], int *dimentions)
 {
-    for (int k = 0; k < rows; k++)
+    for (int k = 0; k < dimentions[0]; k++)
     {
-        for (int l = 0; l < columns; l++)
+        for (int l = 0; l < dimentions[1]; l++)
         {
             int storage[2] = {0, 0};
-            find_adjacent(grid, storage, k, l, rows, columns);
+            find_adjacent(grid, storage, k, l, dimentions);
             if (storage[0] == 3)
             {
                 tmp_grid[k][l] = 1;
