@@ -14,8 +14,6 @@ unsigned int is_alive = 1;
 void help()
 {
     printf("\n\nGOL - Page d'aide\n=================\n\nOptions disponibles:\n\t- h : Permet d'afficher la page d'aide\n\t- f : Permet de commencer le jeu de la vie à partir d'un fichier prédéfini\n\t\t  ATTENTION : le fichier doit suivre une nomenclature spéciale précisée dans le README\n\t- r : Permet de commencer avec une grille aléatoire\n");
-
-    system("man gol");
 }
 
 /// @brief Obtient les dimensions de la grille du jeu de la vie

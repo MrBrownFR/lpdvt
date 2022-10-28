@@ -24,7 +24,7 @@ echo """Etapes de l'installation:
 2. Téléchargement des dépendances nécéssaires
 """
 
-PS3="Quelle distribution utilisez-vous? "
+echo "Quelle distribution utilisez-vous? "
 select DISTRIB in "Ubuntu (WSL)" "Fedora"; do
 
     case $DISTRIB in
