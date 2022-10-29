@@ -13,7 +13,9 @@ unsigned int is_alive = 1;
 /// @brief Affiche le message d'aide
 void help()
 {
-    printf("\n\nGOL - Page d'aide\n=================\n\nOptions disponibles:\n\t- h : Permet d'afficher la page d'aide\n\t- f : Permet de commencer le jeu de la vie à partir d'un fichier prédéfini\n\t\t  ATTENTION : le fichier doit suivre une nomenclature spéciale précisée dans le README\n\t- r : Permet de commencer avec une grille aléatoire\n");
+    printf("\n\nGOL - Page d'aide\n=================\n\nOptions disponibles:\n\t- h : Permet d'afficher la page d'aide\n\t- f : Permet de commencer le jeu de la vie à partir d'un fichier prédéfini\n\t\t  ATTENTION : le fichier doit suivre une nomenclature spéciale précisée dans le README\n\t- m : Permet de visualiser des modèles intéressants\n");
+
+    system("man gol");
 }
 
 /// @brief Obtient les dimensions de la grille du jeu de la vie
@@ -29,7 +31,7 @@ void get_dimensions(char filename[], int *dimensions)
         fprintf(stderr, "Une erreur s'est produite a l'ouverture du fichier %s : %s\n", filename, strerror(errno));
         exit(CANT_OPEN_FILE);
     }
-    int lines = 0;
+    int lines = 1;
     int columns = 1;
     char buffer;
     for (buffer = getc(content); buffer != EOF; buffer = getc(content))
@@ -70,19 +72,22 @@ void init_grid(FILE *content, char *coords, int taille)
 /// @brief Affiche la grille à l'écran
 /// @param grid le pointeur vers les cases de la grille
 /// @param taille la taille allouée à la grille
-void print_grid(char *grid, int taille)
+void print_grid(char *coords_tmp, int taille, int *dimensions)
 {
     printf("Itération n° %d\n", iteration);
     for (int i = 0; i < taille; i++)
     {
-        printf("%c", *grid);
-        grid++;
+        if (i%dimensions[1]==0)
+        {
+            printf("\n");
+        }
+        printf("%c", *(coords_tmp+i));
     }
 }
 
-int valid_cell(int x, int y, int *dimensions)
+int valid_cell(int x, int taille)
 {
-    if (x >= 0 && x < dimensions[0] && y >= 0 && y < dimensions[1])
+    if (x >= 0 && x < taille)
     {
         return 1;
     }
@@ -92,61 +97,53 @@ int valid_cell(int x, int y, int *dimensions)
     }
 }
 
-void find_adjacent(int grid[5][5], int *storage, int i, int j, int *dimensions)
+void find_adjacent(char *coords, int *storage, int k, int taille, int *dimensions)
 {
     int live = 0;
     int dead = 0;
-    int offset[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+    int offset[8] = {-dimensions[1] - 1, -dimensions[1], -dimensions[1]+1, -1, 1, dimensions[1]-1, dimensions[1], dimensions[1]+1};
 
-    for (int k = 0; k < 8; k++)
+    for (int i = 0; i < 8; i++)
     {
-        int x = i + offset[k][0];
-        int y = j + offset[k][1];
-        if (valid_cell(x, y, dimensions))
+        if (valid_cell((k + offset[i]), taille))
         {
-            if (grid[x][y] == 1)
-            {
-                live += 1;
+            if (*(coords+k+offset[i]) == '1') {
+                live++;
             }
-            else if (grid[x][y] == 0)
-            {
-                dead += 1;
-            }
-            else
-            {
-                printf("Erreur : que des 0 et des 1");
-            }
+
         }
     }
     storage[0] = live;
-    storage[1] = dead;
+    storage[1] = 8-live;
+    //printf("Live %d ; Dead %d \n", storage[0], storage[1]);
 }
 
-void update(int grid[5][5], int tmp_grid[5][5], int *dimensions)
-{
-    for (int k = 0; k < dimensions[0]; k++)
+void update(char *coords, char *tmp_coords, int taille, int *dimensions)
+{   
+    // int storage[2] = {0, 0};
+    // find_adjacent(coords, storage, 31, taille, dimensions);
+    // printf("Live %d ; Dead %d ; %c \n", storage[0], storage[1], *(coords+31));
+    for (int k = 0 ; k < taille ; k++) 
     {
-        for (int l = 0; l < dimensions[1]; l++)
-        {
-            int storage[2] = {0, 0};
-            find_adjacent(grid, storage, k, l, dimensions);
-            if (storage[0] == 3)
-            {
-                tmp_grid[k][l] = 1;
-            }
-            else if (storage[0] == 2)
-            {
-                tmp_grid[k][l] = grid[k][l];
-            }
-            else
-            {
-                tmp_grid[k][l] = 0;
-            }
+        int storage[2] = {0, 0};
+        find_adjacent(coords, storage, k, taille, dimensions);
+
+        if (storage[0] == 3) {
+            *(tmp_coords+k) = '1';
+        } else if (storage[0] == 2) {
+            *(tmp_coords+k) = *(coords+k);
+        } else {
+            *(tmp_coords+k) = '0';
         }
     }
+}
 
-    // Il faut copier tmp_grid dans grid dcp avec deux for imbriqués je pense
-    exit(FAIL_UPDATE);
+void paster(char *coords, char *coords_tmp, int taille)
+{
+    for (int k = 0 ; k < taille ; k++)
+    {
+        *(coords+k) = *(coords_tmp+k);
+    }
 }
 
 /// @brief Boucle principale du jeu
@@ -161,11 +158,13 @@ void gol()
     /* INITIALISATION DES DIMENSIONS */
     int dimensions[2];
     get_dimensions(filename, dimensions);
-    // printf("%d %d\n", dimensions[0], dimensions[1]);
+    //printf("%d %d\n", dimensions[0], dimensions[1]);
 
     /* INITIALISATION DE LA GRILLE DE JEU */
     char grid[dimensions[1]][dimensions[0]];
     char *coords = &grid[0][0];
+    char grid_tmp[dimensions[1]][dimensions[0]];
+    char *coords_tmp = &grid_tmp[0][0];
     int taille = sizeof(grid);
     // printf("%d", sizeof(grid));
 
@@ -182,20 +181,45 @@ void gol()
     init_grid(content, coords, taille);
     fclose(content);
     system("clear");
-    print_grid(coords, taille);
+
+    for (int i = 0 ; i < taille ; i++)
+    {
+        *(coords_tmp+i) = *(coords+i);
+    }
+
+    printf("Appuie sur la touche [Entrée] pour continuer.\n");
+    getchar();
 
     while (is_alive)
     {
-        char *tmp_coords = coords;
-        update(*coords, *tmp_coords, dimensions);
-        print_grid(*coords, taille);
+        update(coords, coords_tmp, taille, dimensions);
+        paster(coords, coords_tmp, taille);
+        print_grid(coords, taille, dimensions);
+        printf("\n\n");
         iteration++;
-    };
+        printf("Appuie sur la touche [Entrée] pour continuer.\n");
+        fflush(stdin); // option ONE to clean stdin
+        getchar();
+        system("clear");
+    }
+}
+
+void models()
+{
+    char tmp[5][1000] = {"1", "2", "3", "4", "5"};
+    int iter = 0;
+    while (getchar() != 'q')
+    {  
+        system("clear");
+        printf("%s\n", tmp[iter%5]);
+        iter++;
+        printf("Appuyer sur [Entrée] pour continuer // [q] + [Entrée] pour quitter.\n");
+    }
 }
 
 int main()
 {
-    printf("GOL\n===\nQue voulez-vous faire ? (h: aide, f: chemin de fichier, r: random)\n> ");
+    printf("GOL\n===\nQue voulez-vous faire ? (h: aide, f: chemin de fichier, m: modèles)\n> ");
     char option;
     scanf("%c", &option);
 
@@ -209,8 +233,9 @@ int main()
         gol(); // Nécéssaire sinon bypass du contrôle d'initialisation??
         break;
 
-    case 'r':
+    case 'm':
         // TODO implémentation de la grille random
+        models();
         break;
 
     default:
