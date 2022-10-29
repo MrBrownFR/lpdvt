@@ -211,7 +211,8 @@ void gol()
         fflush(stdin); // option ONE to clean stdin
         getchar();
         system("clear");
-    }
+    };
+    free(grid);
 }
 
 void models()
