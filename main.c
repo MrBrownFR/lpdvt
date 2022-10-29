@@ -5,8 +5,9 @@
 #include <ctype.h>
 
 #define INVALID_CHAR_READING 101
-#define CANT_OPEN_FILE 201
-#define FAIL_UPDATE 102
+#define CANT_OPEN_FILE 102
+#define FAIL_UPDATE 103
+#define BAD_ALLOCATION 201
 unsigned int iteration = 0;
 unsigned int is_alive = 1;
 
@@ -100,7 +101,6 @@ int valid_cell(int x, int taille)
 void find_adjacent(char *coords, int *storage, int k, int taille, int *dimensions)
 {
     int live = 0;
-    int dead = 0;
     int offset[8] = {-dimensions[1] - 1, -dimensions[1], -dimensions[1] + 1, -1, 1, dimensions[1] - 1, dimensions[1], dimensions[1] + 1};
 
     for (int i = 0; i < 8; i++)
@@ -154,6 +154,7 @@ void paster(char *coords, char *coords_tmp, int taille)
 /// @brief Boucle principale du jeu
 void gol()
 {
+    errno = 0;
     /* INITIALISATION DU NOM DU FICHIER */
     char filename[256];
     printf("Quel est le nom du fichier que vous cherchez à ouvrir ? (Merci d'entrer le chemin complet du fichier)\n> ");
@@ -167,10 +168,15 @@ void gol()
 
     /* INITIALISATION DE LA GRILLE DE JEU */
     char *grid = malloc((int)sizeof(char) * dimensions[0] * dimensions[1]); // Malgré les airs trompeurs, on a bien un tableau à 2 dimensions, on utilise juste une technique différente pour la manipuler
+    if (grid == NULL)
+    {
+        fprintf(stderr, "Une erreur s'est produite lors de l'allocation de mémoire de la grille : %s\n", strerror(errno));
+        exit(BAD_ALLOCATION);
+    }
     char grid_tmp[dimensions[1]][dimensions[0]];
     char *coords_tmp = &grid_tmp[0][0];
     int taille = dimensions[0] * dimensions[1];
-    printf("%d", sizeof(grid));
+    // printf("%d", sizeof(grid));
 
     /* OUVERTURE DU FICHIER */
     FILE *content = fopen(filename, "r");
