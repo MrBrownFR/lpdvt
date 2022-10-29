@@ -77,11 +77,11 @@ void print_grid(char *coords_tmp, int taille, int *dimensions)
     printf("Itération n° %d\n", iteration);
     for (int i = 0; i < taille; i++)
     {
-        if (i%dimensions[1]==0)
+        if (i % dimensions[1] == 0)
         {
             printf("\n");
         }
-        printf("%c", *(coords_tmp+i));
+        printf("%c", *(coords_tmp + i));
     }
 }
 
@@ -101,48 +101,53 @@ void find_adjacent(char *coords, int *storage, int k, int taille, int *dimension
 {
     int live = 0;
     int dead = 0;
-    int offset[8] = {-dimensions[1] - 1, -dimensions[1], -dimensions[1]+1, -1, 1, dimensions[1]-1, dimensions[1], dimensions[1]+1};
+    int offset[8] = {-dimensions[1] - 1, -dimensions[1], -dimensions[1] + 1, -1, 1, dimensions[1] - 1, dimensions[1], dimensions[1] + 1};
 
     for (int i = 0; i < 8; i++)
     {
         if (valid_cell((k + offset[i]), taille))
         {
-            if (*(coords+k+offset[i]) == '1') {
+            if (*(coords + k + offset[i]) == '1')
+            {
                 live++;
             }
-
         }
     }
     storage[0] = live;
-    storage[1] = 8-live;
-    //printf("Live %d ; Dead %d \n", storage[0], storage[1]);
+    storage[1] = 8 - live;
+    // printf("Live %d ; Dead %d \n", storage[0], storage[1]);
 }
 
 void update(char *coords, char *tmp_coords, int taille, int *dimensions)
-{   
+{
     // int storage[2] = {0, 0};
     // find_adjacent(coords, storage, 31, taille, dimensions);
     // printf("Live %d ; Dead %d ; %c \n", storage[0], storage[1], *(coords+31));
-    for (int k = 0 ; k < taille ; k++) 
+    for (int k = 0; k < taille; k++)
     {
         int storage[2] = {0, 0};
         find_adjacent(coords, storage, k, taille, dimensions);
 
-        if (storage[0] == 3) {
-            *(tmp_coords+k) = '1';
-        } else if (storage[0] == 2) {
-            *(tmp_coords+k) = *(coords+k);
-        } else {
-            *(tmp_coords+k) = '0';
+        if (storage[0] == 3)
+        {
+            *(tmp_coords + k) = '1';
+        }
+        else if (storage[0] == 2)
+        {
+            *(tmp_coords + k) = *(coords + k);
+        }
+        else
+        {
+            *(tmp_coords + k) = '0';
         }
     }
 }
 
 void paster(char *coords, char *coords_tmp, int taille)
 {
-    for (int k = 0 ; k < taille ; k++)
+    for (int k = 0; k < taille; k++)
     {
-        *(coords+k) = *(coords_tmp+k);
+        *(coords + k) = *(coords_tmp + k);
     }
 }
 
@@ -158,15 +163,14 @@ void gol()
     /* INITIALISATION DES DIMENSIONS */
     int dimensions[2];
     get_dimensions(filename, dimensions);
-    //printf("%d %d\n", dimensions[0], dimensions[1]);
+    // printf("%d %d\n", dimensions[0], dimensions[1]);
 
     /* INITIALISATION DE LA GRILLE DE JEU */
-    char grid[dimensions[1]][dimensions[0]];
-    char *coords = &grid[0][0];
+    char *grid = malloc((int)sizeof(char) * dimensions[0] * dimensions[1]); // Malgré les airs trompeurs, on a bien un tableau à 2 dimensions, on utilise juste une technique différente pour la manipuler
     char grid_tmp[dimensions[1]][dimensions[0]];
     char *coords_tmp = &grid_tmp[0][0];
-    int taille = sizeof(grid);
-    // printf("%d", sizeof(grid));
+    int taille = dimensions[0] * dimensions[1];
+    printf("%d", sizeof(grid));
 
     /* OUVERTURE DU FICHIER */
     FILE *content = fopen(filename, "r");
@@ -178,13 +182,13 @@ void gol()
     }
 
     /* TRAVAIL SUR LA GRILLE */
-    init_grid(content, coords, taille);
+    init_grid(content, grid, taille);
     fclose(content);
     system("clear");
 
-    for (int i = 0 ; i < taille ; i++)
+    for (int i = 0; i < taille; i++)
     {
-        *(coords_tmp+i) = *(coords+i);
+        *(coords_tmp + i) = *(grid + i);
     }
 
     printf("Appuie sur la touche [Entrée] pour continuer.\n");
@@ -192,9 +196,9 @@ void gol()
 
     while (is_alive)
     {
-        update(coords, coords_tmp, taille, dimensions);
-        paster(coords, coords_tmp, taille);
-        print_grid(coords, taille, dimensions);
+        update(grid, coords_tmp, taille, dimensions);
+        paster(grid, coords_tmp, taille);
+        print_grid(grid, taille, dimensions);
         printf("\n\n");
         iteration++;
         printf("Appuie sur la touche [Entrée] pour continuer.\n");
@@ -209,9 +213,9 @@ void models()
     char tmp[5][1000] = {"1", "2", "3", "4", "5"};
     int iter = 0;
     while (getchar() != 'q')
-    {  
+    {
         system("clear");
-        printf("%s\n", tmp[iter%5]);
+        printf("%s\n", tmp[iter % 5]);
         iter++;
         printf("Appuyer sur [Entrée] pour continuer // [q] + [Entrée] pour quitter.\n");
     }
