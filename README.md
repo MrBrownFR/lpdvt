@@ -17,6 +17,8 @@ Le Jeu de la Vie a été inventé par John Conway (1937 - 2020) en 1970. Le jeu 
 
 ## Installation
 
+Pour installer le programme, vous avez juste à télécharger le script d'installation disponible [ici](https://raw.githubusercontent.com/MrBrownFR/lpdvt/master/install.sh) (puis <kbd>Ctrl</kbd> + <kbd>s</kbd> pour enregistrer le script), et ce dernier fera le reste.
+
 ## Utilisation
 
 L'utilisateur peut choisir trois options à son arrivée :

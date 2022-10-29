@@ -238,7 +238,6 @@ int main()
         break;
 
     case 'm':
-        // TODO implémentation de la grille random
         models();
         break;
 
